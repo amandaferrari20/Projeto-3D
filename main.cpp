@@ -1,13 +1,15 @@
 #include "bibutil.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <GL/freeglut.h>
 
-//#define DEBUG 1
-// Vari�veis para controles de navega��o
 GLfloat angle, fAspect;
 GLfloat rotX, rotY, rotX_ini, rotY_ini;
 GLfloat obsX, obsY, obsZ, obsX_ini, obsY_ini, obsZ_ini;
+int lastX = 0;
+int lastY = 0;
+bool primeiraExecucao = true;
 int x_ini,y_ini,bot;
 
 // Apontador para objeto
@@ -17,8 +19,8 @@ OBJ *objeto;
 void DefineIluminacao (void)
 {
 	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
-	GLfloat luzDifusa[4]={1.0,1.0,1.0,1.0};	   	// "cor"
-	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};	// "brilho"
+	GLfloat luzDifusa[4]={1.0,1.0,1.0,1.0};	  
+	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};
 	GLfloat posicaoLuz[4]={0.0, 10.0, 100.0, 1.0};
 
 	// Capacidade de brilho do material
@@ -64,28 +66,23 @@ void Desenha(void)
 	glutSwapBuffers();
 }
 
-// Fun��o usada para especificar a posi��o do observador virtual
-void PosicionaObservador(void){
+void PosicionaObservador(void)
+{
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();//carrega a matriz de identidade
-    gluLookAt(obsX,obsY,obsZ,//posi��o da c�mera
-              0.0,0.0,0.0,//para onde a c�mera aponta
-              0.0,1.0,0.0);//vetor view-up//
+    glLoadIdentity();
+
+    // Posiciona a câmera
+    gluLookAt(obsX, obsY, obsZ, obsX + sin(rotY * M_PI / 180.0), obsY - sin(rotX * M_PI / 180.0), obsZ - cos(rotY * M_PI / 180.0), 0.0, 1.0, 0.0);
 }
 
 // Fun��o usada para especificar o volume de visualiza��o
 void EspecificaParametrosVisualizacao(void)
 {
-
-	// Especifica sistema de coordenadas de proje��o
 	glMatrixMode(GL_PROJECTION);
-	// Inicializa sistema de coordenadas de proje��o
 	glLoadIdentity();
 
-	// Especifica a proje��o perspectiva(angulo,aspecto,dnear,dfar)
 	gluPerspective(angle,fAspect,0.01,1200);
 
-	// Chama as fun��es que especificam os par�metros da c�mera e os par�metros de ilumina��o
 	PosicionaObservador();
 	DefineIluminacao();
 
@@ -107,39 +104,56 @@ void AlteraTamanhoJanela(GLsizei w, GLsizei h)
 }
 
 // Fun��o callback chamada para gerenciar eventos de teclas normais (ESC)
-void Teclas (unsigned char tecla, int x, int y)
+void TeclasNormais(unsigned char tecla, int x, int y)
 {
-	if(tecla==27) // ESC ?
-	{
-		// Libera mem�ria e finaliza programa
-		LiberaObjeto(objeto);
-		exit(0);
-	}
-	if(tecla=='m')
-	{
-		if(glIsEnabled(GL_LIGHTING))
-			glDisable(GL_LIGHTING);
-		else
-            glEnable(GL_LIGHTING);
-	}
-	glutPostRedisplay();
+    float velocidadeMovimento = 1.0f;
+
+    switch (tecla)
+    {
+        case 'w': // Movimento para frente
+            obsX += velocidadeMovimento * sin(rotY * M_PI / 180.0);
+            obsZ -= velocidadeMovimento * cos(rotY * M_PI / 180.0);
+            break;
+        case 's': // Movimento para trás
+            obsX -= velocidadeMovimento * sin(rotY * M_PI / 180.0);
+            obsZ += velocidadeMovimento * cos(rotY * M_PI / 180.0);
+            break;
+        case 'a': // Movimento para o lado esquerdo
+            obsX -= velocidadeMovimento * cos(rotY * M_PI / 180.0);
+            obsZ -= velocidadeMovimento * sin(rotY * M_PI / 180.0);
+            break;
+        case 'd': // Movimento para o lado direito
+            obsX += velocidadeMovimento * cos(rotY * M_PI / 180.0);
+            obsZ += velocidadeMovimento * sin(rotY * M_PI / 180.0);
+            break;
+        case 27: // Tecla ESC
+            LiberaObjeto(objeto);
+            exit(0);
+            break;
+    }
+
+    PosicionaObservador();
+    glutPostRedisplay();
 }
 
-// Fun��o callback para tratar eventos de teclas especiais
-void TeclasEspeciais (int tecla, int x, int y)
+void TeclasEspeciais(int tecla, int x, int y)
 {
-	switch (tecla)
-	{
-		case GLUT_KEY_HOME:	if(angle>=10)  angle -=5;
-							break;
-		case GLUT_KEY_END:	if(angle<=150) angle +=5;
-							break;
-	}
-	EspecificaParametrosVisualizacao();
-	glutPostRedisplay();
+    float velocidadeMovimento = 1.0f;
+
+    switch (tecla)
+    {
+        case 32: // Tecla ESPAÇO (mover para cima)
+            obsY += velocidadeMovimento;
+            break;
+        case 16: // Tecla SHIFT (mover para baixo)
+            obsY -= velocidadeMovimento;
+            break;
+    }
+
+    PosicionaObservador();
+    glutPostRedisplay();
 }
 
-// Fun��o callback para eventos de bot�es do mouse
 void GerenciaMouse(int button, int state, int x, int y)
 {
 	if(state==GLUT_DOWN)
@@ -161,74 +175,62 @@ void GerenciaMouse(int button, int state, int x, int y)
 #define SENS_ROT	5.0
 #define SENS_OBS	15.0
 #define SENS_TRANSL	20.0
+
 void GerenciaMovim(int x, int y)
 {
-	// Bot�o esquerdo
-	if(bot==GLUT_LEFT_BUTTON)
-	{
-		// Calcula diferen�as
-		int deltax = x_ini - x;
-		int deltay = y_ini - y;
-		// E modifica �ngulos
-		rotY = rotY_ini - deltax/SENS_ROT;
-		rotX = rotX_ini - deltay/SENS_ROT;
-	}
-	// Bot�o direito (zoom-in e zoom-out)
-	else if(bot==GLUT_RIGHT_BUTTON){
-		// Calcula diferen�a
-		int deltaz = y_ini - y;
-		// E modifica dist�ncia do observador
-		obsZ = obsZ_ini + deltaz/SENS_OBS;
-	}
-	// Bot�o do meio
-	else if(bot==GLUT_MIDDLE_BUTTON)
-	{
-		// Calcula diferen�as
-		int deltax = x_ini - x;
-		int deltay = y_ini - y;
-		// E modifica posi��es
-		obsX = obsX_ini + deltax/SENS_TRANSL;
-		obsY = obsY_ini - deltay/SENS_TRANSL;
-	}
-	PosicionaObservador();
-	glutPostRedisplay();
+    int deltaX = x - lastX;
+    int deltaY = y - lastY;
+
+    rotY += deltaX / SENS_ROT;
+    rotX += deltaY / SENS_ROT;
+
+    lastX = x;
+    lastY = y;
+
+    PosicionaObservador();
+    glutPostRedisplay();
 }
 
-// Fun��o respons�vel por inicializar par�metros e vari�veis
+void GerenciaMovimPassivo(int x, int y)
+{
+    if (primeiraExecucao) {
+        lastX = x;
+        lastY = y;
+        primeiraExecucao = false;
+    }
+
+    int deltaX = x - lastX;
+    int deltaY = y - lastY;
+
+    rotY += deltaX / SENS_ROT;
+    rotX += deltaY / SENS_ROT;
+
+    lastX = x;
+    lastY = y;
+
+    PosicionaObservador();
+    glutPostRedisplay();
+}
+
 void Inicializa (void)
 {
 	char nomeArquivo[30];
 
-	// Define a cor de fundo da janela de visualiza��o como branca
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	// Habilita a defini��o da cor do material a partir da cor corrente
 	glEnable(GL_COLOR_MATERIAL);
-	//Habilita o uso de ilumina��o
 	glEnable(GL_LIGHTING);
-	// Habilita a luz de n�mero 0
 	glEnable(GL_LIGHT0);
-	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
 
-	// Habilita o modelo de tonaliza��o de Gouraud
 	glShadeModel(GL_SMOOTH);
 
-	// Inicializa a vari�vel que especifica o �ngulo da proje��o
-	// perspectiva
 	angle=55;
 
-	// Inicializa as vari�veis usadas para alterar a posi��o do
-	// observador virtual
 	obsX = obsY = 0;
 	obsZ = 100;
 
-	// L� o nome do arquivo e chama a rotina de leitura
-	//printf("Digite o nome do arquivo que contem o modelo 3D: ");
-	//gets(nomeArquivo);
-
-	// Carrega o objeto 3D
-	objeto = CarregaObjeto("bugatti.obj",true);
+	objeto = CarregaObjeto("teapot.obj",true);
     printf("Objeto carregado!");
 
 	// E calcula o vetor normal em cada face
@@ -245,41 +247,20 @@ void Inicializa (void)
 int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
-	// Define do modo de opera��o da GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
-	// Especifica a posi��o inicial da janela GLUT
 	glutInitWindowPosition(5,5);
-
-	// Especifica o tamanho inicial em pixels da janela GLUT
 	glutInitWindowSize(450,450);
-
-	// Cria a janela passando como argumento o t�tulo da mesma
-	glutCreateWindow("Desenho de um objeto 3D com c�lculo do vetor normal");
-
-	// Registra a fun��o callback de redesenho da janela de visualiza��o
+	glutCreateWindow("Projeto 3D");
+	glutSetCursor(GLUT_CURSOR_NONE); 
+	glutFullScreen();
 	glutDisplayFunc(Desenha);
-
-	// Registra a fun��o callback de redimensionamento da janela de visualiza��o
 	glutReshapeFunc(AlteraTamanhoJanela);
-
-	// Registra a fun��o callback para tratamento das teclas normais
-	glutKeyboardFunc (Teclas);
-
-	// Registra a fun��o callback para tratamento das teclas especiais
-	glutSpecialFunc (TeclasEspeciais);
-
-	// Registra a fun��o callback para eventos de bot�es do mouse
+	glutKeyboardFunc(TeclasNormais);
+	glutSpecialFunc(TeclasEspeciais);
 	glutMouseFunc(GerenciaMouse);
-
-	// Registra a fun��o callback para eventos de movimento do mouse
 	glutMotionFunc(GerenciaMovim);
-
-	// Chama a fun��o respons�vel por fazer as inicializa��es
+	glutPassiveMotionFunc(GerenciaMovimPassivo);
 	Inicializa();
-
-	// Inicia o processamento e aguarda intera��es do usu�rio
 	glutMainLoop();
-
 	return 0;
 }
