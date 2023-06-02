@@ -91,15 +91,28 @@ void Desenha(void)
     glPushMatrix();
     glLoadIdentity();
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Define a cor da mira como branco
+    // Desabilita a iluminação apenas para a mira
+    glDisable(GL_LIGHTING);
+
+    glColor3f(0.0f, 1.0f, 0.0f);
     float tamanhoMira = 10.0f; // Define o tamanho da mira
+    float espacoCentral = 3.0f; // Define o tamanho do espaço em branco no centro
+
+    glLineWidth(2.3f); // Define a largura das linhas da mira
 
     glBegin(GL_LINES);
     // Linhas verticais
     glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2 - tamanhoMira);
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2 - espacoCentral);
+
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2 + espacoCentral);
     glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2 + tamanhoMira);
+
     // Linhas horizontais
     glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2 - tamanhoMira, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2 - espacoCentral, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+
+    glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2 + espacoCentral, glutGet(GLUT_WINDOW_HEIGHT) / 2);
     glVertex2f(glutGet(GLUT_WINDOW_WIDTH) / 2 + tamanhoMira, glutGet(GLUT_WINDOW_HEIGHT) / 2);
     glEnd();
 
@@ -107,6 +120,8 @@ void Desenha(void)
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+
+    glEnable(GL_LIGHTING);
 
     // Altera a cor do desenho para rosa
     glColor3f(1.0f, 0.0f, 1.0f);
