@@ -1,8 +1,10 @@
 #include "bibutil.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <math.h>
 #include <GL/freeglut.h>
+#include <SOIL.h>
 
 GLfloat angle, fAspect;
 GLfloat rotX, rotY, rotX_ini, rotY_ini;
@@ -54,9 +56,135 @@ void DefineIluminacao (void)
 
 	// Define os par�metros da luz de n�mero 0
 	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
-	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
-	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular);
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
+}
+
+GLuint texturaTerreno = 0; 
+
+void DesenharTerreno(float tamanhoTerreno)
+{
+     // Verifica se a textura do terreno já foi carregada
+    if (texturaTerreno == 0)
+    {
+        // Carregar a textura do terreno
+        texturaTerreno = SOIL_load_OGL_texture(
+            "floor.png",
+            SOIL_LOAD_AUTO,
+            SOIL_CREATE_NEW_ID,
+            SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
+        );
+
+        if (texturaTerreno == 0)
+        {
+            printf("Erro ao carregar a textura do terreno: %s\n", SOIL_last_result());
+            return;
+        }
+    }
+
+    // Habilitar o uso de texturas
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaTerreno);
+
+    // Configurar os parâmetros de textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Definir a altura do terreno em relação à origem
+    float alturaTerreno = -1.0f;
+
+    // Desenhar o terreno como uma malha de quadrados
+    glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-tamanhoTerreno / 2, alturaTerreno, -tamanhoTerreno / 2);
+
+    glTexCoord2f(0.0f, tamanhoTerreno / 100.0f);
+    glVertex3f(-tamanhoTerreno / 2, alturaTerreno, tamanhoTerreno / 2);
+
+    glTexCoord2f(tamanhoTerreno / 100.0f, tamanhoTerreno / 100.0f);
+    glVertex3f(tamanhoTerreno / 2, alturaTerreno, tamanhoTerreno / 2);
+
+    glTexCoord2f(tamanhoTerreno / 100.0f, 0.0f);
+    glVertex3f(tamanhoTerreno / 2, alturaTerreno, -tamanhoTerreno / 2);
+    glEnd();
+    
+    glDisable(GL_BLEND);
+    // Desabilitar o uso de texturas
+    glDisable(GL_TEXTURE_2D);
+}
+
+GLuint texturaLua = 0;
+
+void ConfigurarTexturaLua()
+{
+    if(texturaLua == 0){
+        // Carregar a textura da lua
+        texturaLua = SOIL_load_OGL_texture(
+            "lua.jpg",
+            SOIL_LOAD_RGBA,  // Carregar a textura com canal alfa (transparência)
+            SOIL_CREATE_NEW_ID,
+            SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
+        );
+
+        if (texturaLua == 0)
+        {
+            printf("Erro ao carregar a textura da lua: %s\n", SOIL_last_result());
+            return;
+        }
+    }
+}
+
+void DesenhaLua()
+{
+    // Define as propriedades da lua
+    float raio = 40.0f;
+    int numMeridianos = 36;
+    int numParalelos = 18;
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaLua);
+
+    // Configurar os parâmetros de textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Desenhar a esfera da lua
+    for (int i = 0; i < numParalelos; i++)
+    {
+        float lat1 = i * (180.0f / (numParalelos - 1)) - 90.0f;
+        float lat2 = (i + 1) * (180.0f / (numParalelos - 1)) - 90.0f;
+
+        glBegin(GL_QUAD_STRIP);
+        for (int j = 0; j <= numMeridianos; j++)
+        {
+            float lon = j * (360.0f / numMeridianos);
+
+            float x1 = raio * cos(lat1 * 3.14159f / 180.0f) * cos(lon * 3.14159f / 180.0f);
+            float y1 = raio * cos(lat1 * 3.14159f / 180.0f) * sin(lon * 3.14159f / 180.0f);
+            float z1 = raio * sin(lat1 * 3.14159f / 180.0f);
+
+            float x2 = raio * cos(lat2 * 3.14159f / 180.0f) * cos(lon * 3.14159f / 180.0f);
+            float y2 = raio * cos(lat2 * 3.14159f / 180.0f) * sin(lon * 3.14159f / 180.0f);
+            float z2 = raio * sin(lat2 * 3.14159f / 180.0f);
+
+            // Definir as coordenadas de textura
+            float s = (float)j / numMeridianos;
+            float t1 = (float)i / (numParalelos - 1);
+            float t2 = (float)(i + 1) / (numParalelos - 1);
+
+            glTexCoord2f(s, t1);
+            glVertex3f(x1, y1, z1);
+
+            glTexCoord2f(s, t2);
+            glVertex3f(x2, y2, z2);
+        }
+        glEnd();
+    }
+
+    glDisable(GL_TEXTURE_2D);
 }
 
 // Fun��o callback de redesenho da janela de visualiza��o
@@ -120,14 +248,25 @@ void Desenha(void)
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
-
+    
     glEnable(GL_LIGHTING);
+
+    // Desenha terreno
+    DesenharTerreno(1000.0f);
+
+    // Desenha sol
+    glPushMatrix();
+    glTranslatef(700.0f, 500.0f, 0.0f);
+    ConfigurarTexturaLua();
+    DesenhaLua();
+    glPopMatrix();
 
     // Altera a cor do desenho para rosa
     glColor3f(1.0f, 0.0f, 1.0f);
 
     // Desenha o objeto 3D lido do arquivo com a cor corrente
     glPushMatrix();
+    glScalef(10.0f, 10.0f, 10.0f);
     DesenhaObjeto(objeto);
     glPopMatrix();
 
@@ -291,12 +430,14 @@ void GerenciaMovimPassivo(int x, int y)
 
 void Inicializa(void)
 {
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    // Define a cor de fundo como um céu escuro
+    glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
 
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     glShadeModel(GL_SMOOTH);
 
@@ -305,7 +446,7 @@ void Inicializa(void)
     obsX = obsY = 0;
     obsZ = 100;
 
-    objeto = CarregaObjeto("teapot.obj", true);
+    objeto = CarregaObjeto("Bambo_House.obj", true);
     printf("Objeto carregado!");
 
     // E calcula o vetor normal em cada face
@@ -342,7 +483,7 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutCreateWindow("Projeto 3D");
-	// glutSetCursor(GLUT_CURSOR_NONE); 
+	glutSetCursor(GLUT_CURSOR_NONE); 
 	glutFullScreen();
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela);
