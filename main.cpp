@@ -266,7 +266,7 @@ void Desenha(void)
 
     // Desenha o objeto 3D lido do arquivo com a cor corrente
     glPushMatrix();
-    glScalef(10.0f, 10.0f, 10.0f);
+    glScalef(12.0f, 12.0f, 12.0f);
     DesenhaObjeto(objeto);
     glPopMatrix();
 
