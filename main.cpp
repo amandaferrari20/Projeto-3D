@@ -6,6 +6,8 @@
 #include <GL/freeglut.h>
 #include <SOIL.h>
 
+#define DEBUG 0
+
 GLfloat angle, fAspect;
 GLfloat rotX, rotY, rotX_ini, rotY_ini;
 GLfloat obsX, obsY, obsZ, obsX_ini, obsY_ini, obsZ_ini;
@@ -194,21 +196,23 @@ void Desenha(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
 
-    // Desenha as linhas de referência dos eixos x, y e z
-    glBegin(GL_LINES);
-    // Eixo x (vermelho)
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-100.0f, 0.0f, 0.0f);
-    glVertex3f(100.0f, 0.0f, 0.0f);
-    // Eixo y (verde)
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0.0f, -100.0f, 0.0f);
-    glVertex3f(0.0f, 100.0f, 0.0f);
-    // Eixo z (azul)
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, -100.0f);
-    glVertex3f(0.0f, 0.0f, 100.0f);
-    glEnd();
+    #if DEBUG
+        // Desenha as linhas de referência dos eixos x, y e z
+        glBegin(GL_LINES);
+        // Eixo x (vermelho)
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(-100.0f, 0.0f, 0.0f);
+        glVertex3f(100.0f, 0.0f, 0.0f);
+        // Eixo y (verde)
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(0.0f, -100.0f, 0.0f);
+        glVertex3f(0.0f, 100.0f, 0.0f);
+        // Eixo z (azul)
+        glColor3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(0.0f, 0.0f, -100.0f);
+        glVertex3f(0.0f, 0.0f, 100.0f);
+        glEnd();
+    #endif
 
     // Desenha a mira no centro da tela
     glMatrixMode(GL_PROJECTION);
@@ -267,6 +271,7 @@ void Desenha(void)
     // Desenha o objeto 3D lido do arquivo com a cor corrente
     glPushMatrix();
     glScalef(12.0f, 12.0f, 12.0f);
+    glEnable(GL_NORMALIZE);
     DesenhaObjeto(objeto);
     glPopMatrix();
 
@@ -491,6 +496,8 @@ int main(int argc, char *argv[])
 	glutKeyboardUpFunc(TecladoUp);
 	glutPassiveMotionFunc(GerenciaMovimPassivo);
 	glutIdleFunc(AtualizaCamera);
+
+    // Timer para animação do pulo
 	glutTimerFunc(16, AtualizaPulo, 0);
 	Inicializa();
 	glutMainLoop();
