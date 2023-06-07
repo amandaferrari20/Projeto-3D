@@ -1,6 +1,6 @@
 # Blender v2.70 (sub 0) OBJ File: '3D_BambusHouse_05_Final.blend'
 # www.blender.org
-mtllib Bambo_House.mtl
+mtllib models/Bambo_House.mtl
 v 7.807772 7.711858 -4.901905
 v 7.120535 7.711858 -4.901906
 v 7.811904 7.992589 -5.563268

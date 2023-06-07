@@ -1,4 +1,4 @@
-#include "bibutil.h"
+#include "libs/bibutil.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -72,7 +72,7 @@ void DesenharTerreno(float tamanhoTerreno)
     {
         // Carregar a textura do terreno
         texturaTerreno = SOIL_load_OGL_texture(
-            "floor.png",
+            "textures/floor.png",
             SOIL_LOAD_AUTO,
             SOIL_CREATE_NEW_ID,
             SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
@@ -125,7 +125,7 @@ void ConfigurarTexturaLua()
     if(texturaLua == 0){
         // Carregar a textura da lua
         texturaLua = SOIL_load_OGL_texture(
-            "lua.jpg",
+            "textures/lua.jpg",
             SOIL_LOAD_RGBA,  // Carregar a textura com canal alfa (transparência)
             SOIL_CREATE_NEW_ID,
             SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
@@ -451,7 +451,7 @@ void Inicializa(void)
     obsX = obsY = 0;
     obsZ = 100;
 
-    objeto = CarregaObjeto("Bambo_House.obj", true);
+    objeto = CarregaObjeto("models/Bambo_House.obj", true);
     printf("Objeto carregado!");
 
     // E calcula o vetor normal em cada face
