@@ -6,7 +6,6 @@
 #include <GL/freeglut.h>
 #include <SOIL.h>
 
-
 #define DEBUG 0
 
 GLfloat angle, fAspect;
@@ -142,6 +141,113 @@ void ConfigurarTexturaLua()
     }
 }
 
+void DesenharRetangulo3D(float largura, float altura, float profundidade)
+{
+    // Ajustar a escala do cubo para criar um retângulo
+    glScalef(largura, altura, profundidade);
+
+    // Desenhar o cubo
+    glutSolidCube(1.0f);
+}
+
+void DesenharCuboRua(float comprimentoRua, float larguraRua)
+{
+    // Definir a altura da rua em relação à origem
+    float alturaRua = 3.5f;
+
+    // Definir a cor preta
+    glColor3f(0.4f, 0.4f, 0.4f);
+
+    // Redimensionar e desenhar o cubo da rua
+    glPushMatrix();
+    glScalef(larguraRua + 8, alturaRua, comprimentoRua);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
+GLuint texturaRua = 0;
+
+void DesenharRua(float comprimentoRua, float larguraRua)
+{
+    // Verifica se a textura da rua já foi carregada
+    if (texturaRua == 0)
+    {
+        // Carregar a textura da rua
+        texturaRua = SOIL_load_OGL_texture(
+            "textures/rua.png",
+            SOIL_LOAD_AUTO,
+            SOIL_CREATE_NEW_ID,
+            SOIL_FLAG_TEXTURE_REPEATS
+        );
+
+        if (texturaRua == 0)
+        {
+            printf("Erro ao carregar a textura da rua: %s\n", SOIL_last_result());
+            return;
+        }
+    }
+
+    // Habilitar o uso de texturas
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaRua);
+
+    // Configurar os parâmetros de textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Definir a altura da rua em relação à origem
+    float alturaRua = 2.0f;
+
+    // Desenhar a rua como um paralelepípedo
+    glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+    glBegin(GL_QUADS);
+    // Face frontal
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, -comprimentoRua / 2);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(larguraRua / 2, alturaRua, -comprimentoRua / 2);
+
+    // Face traseira
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(larguraRua / 2, alturaRua, -comprimentoRua / 2);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, -comprimentoRua / 2);
+
+    // Restantes das faces (laterais)
+    // Face esquerda
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, -comprimentoRua / 2);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(-larguraRua / 2, alturaRua + 0.01f, comprimentoRua / 2);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(-larguraRua / 2, alturaRua + 0.01f, -comprimentoRua / 2);
+
+    // Face direita
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(larguraRua / 2, alturaRua, comprimentoRua / 2);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(larguraRua / 2, alturaRua, -comprimentoRua / 2);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(larguraRua / 2, alturaRua + 0.01f, -comprimentoRua / 2);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(larguraRua / 2, alturaRua + 0.01f, comprimentoRua / 2);
+    glEnd();
+
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+}
+
 void DesenhaLua()
 {
     // Define as propriedades da lua
@@ -191,7 +297,6 @@ void DesenhaLua()
 
     glDisable(GL_TEXTURE_2D);
 }
-
 // Fun��o callback de redesenho da janela de visualiza��o
 void Desenha(void)
 {
@@ -278,12 +383,25 @@ void Desenha(void)
     DesenhaObjeto(objeto);
     glPopMatrix();
 
-
     // Alterando carro e desenhando
     glPushMatrix();
     glTranslatef(25.0f, 000.0f, 40.0f);
     glScalef(12.0f, 12.0f, 12.0f);
     DesenhaObjeto(coisa);
+    glPopMatrix();
+
+     // Alterando carro e desenhando
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 150.0f);
+    glRotatef(90, 0, 1, 0);
+    DesenharRua(1000, 100);
+    glPopMatrix();
+
+    // Desenhar cubo abaixo da rua
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 150.0f);
+    glRotatef(90, 0, 1, 0);
+    DesenharCuboRua(1000, 100);
     glPopMatrix();
 
     // Executa os comandos OpenGL
@@ -471,16 +589,6 @@ void Inicializa(void)
         free(objeto->normais);
         objeto->normais_por_vertice = false;
     }
-
-
-
-
-
-
-
-
-
-
 
     coisa = CarregaObjeto("models/Car.obj", true);
     printf("Objeto carregado!");
