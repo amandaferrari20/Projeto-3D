@@ -385,6 +385,17 @@ void Desenha(void)
     DesenhaObjeto(objeto);
     glPopMatrix();
 
+
+    GLfloat corAmbiente[] = { 0.5f, 0.5f, 0.5f, 1.0f };  // Cor ambiente do objeto1
+    GLfloat corDifusa[] = { 0.8f, 0.8f, 0.8f, 1.0f };    // Cor difusa do objeto1
+    GLfloat corEspecular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Cor especular do objeto1
+    GLfloat brilhoEspecular = 32.0f;                    // Brilho especular do objeto1
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, corAmbiente);       // Define a cor ambiente
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, corDifusa);         // Define a cor difusa
+    glMaterialfv(GL_FRONT, GL_SPECULAR, corEspecular);     // Define a cor especular
+    glMaterialf(GL_FRONT, GL_SHININESS, brilhoEspecular);
+
     // Alterando carro e desenhando
     glPushMatrix();
     glTranslatef(25.0f, 000.0f, 40.0f);
