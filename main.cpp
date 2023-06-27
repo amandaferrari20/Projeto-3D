@@ -28,12 +28,10 @@ float aceleracaoGravidade = -0.05f;
 
 // Apontador para objeto
 OBJ *objeto;
-
 OBJ *plante;
-
 OBJ *carro;
-
 OBJ *carrovoador;
+OBJ *cadeira;
 
 // Flags para o estado das teclas
 bool keyW = false;
@@ -401,6 +399,12 @@ void Desenha(void)
     DesenhaObjeto(carrovoador);
     glPopMatrix();
 
+     // Alterando cadeira e desenhando
+    glPushMatrix();
+    glTranslatef(141.0f, 040.0f, -75.0f);
+    glScalef(5.0f, 5.0f, 5.0f);
+    DesenhaObjeto(cadeira);
+    glPopMatrix();
 
 
     // Alterando plante e desenhando
@@ -410,7 +414,7 @@ void Desenha(void)
     DesenhaObjeto(plante);
     glPopMatrix();
 
-     // Alterando carro e desenhando
+     // Alterando rua e desenhando
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, 150.0f);
     glRotatef(90, 0, 1, 0);
@@ -609,15 +613,11 @@ void Inicializa(void)
         free(objeto->normais);
         objeto->normais_por_vertice = false;
     }
+    // E calcula o vetor normal em cada face
+    CalculaNormaisPorFace(objeto);
 
     carro = CarregaObjeto("models/Car.obj", true);
     printf("Objeto carregado!");
-
-    plante = CarregaObjeto("models/potted_plant_blender_2.8.obj", true);
-    printf("Objeto carregado!");
-
-    // E calcula o vetor normal em cada face
-    CalculaNormaisPorFace(objeto);
 
     if (carro->normais)
     {
@@ -627,6 +627,8 @@ void Inicializa(void)
     }
     CalculaNormaisPorFace(carro);
 
+    plante = CarregaObjeto("models/potted_plant_blender_2.8.obj", true);
+    printf("Objeto carregado!");
     if (plante->normais)
     {
         // Se já existirem normais no arquivo, apaga elas
@@ -645,6 +647,18 @@ void Inicializa(void)
         carrovoador->normais_por_vertice = false;
     }
     CalculaNormaisPorFace(carrovoador);
+
+
+    cadeira = CarregaObjeto("models/DesignChair1.obj", true);
+    printf("Objeto carregado!");
+
+    if (cadeira->normais)
+    {
+        // Se já existirem normais no arquivo, cadeiraaga elas
+        free(cadeira->normais);
+        cadeira->normais_por_vertice = false;
+    }
+    CalculaNormaisPorFace(cadeira);
 }
 
 
