@@ -26,10 +26,12 @@ int x_ini,y_ini,bot;
 float velocidadeVertical = 0.0f; // Velocidade vertical inicial
 float aceleracaoGravidade = -0.05f; 
 
-// Apontador para objeto
+// carrovoadorontador para objeto
 OBJ *objeto;
 
-OBJ *coisa;
+OBJ *carro;
+
+OBJ *carrovoador;
 
 // Flags para o estado das teclas
 bool keyW = false;
@@ -45,7 +47,7 @@ void DefineIluminacao (void)
 	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};
 	GLfloat posicaoLuz[4]={0.0, 10.0, 100.0, 1.0};
 
-	// Capacidade de brilho do material
+	// Ccarrovoadoracidade de brilho do material
 	GLfloat especularidade[4]={1.0,1.0,1.0,1.0};
 	GLint especMaterial = 60;
 
@@ -77,7 +79,7 @@ void DesenharTerreno(float tamanhoTerreno)
             "textures/floor.png",
             SOIL_LOAD_AUTO,
             SOIL_CREATE_NEW_ID,
-            SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
+            SOIL_FLAG_MIPMcarrovoadorS | SOIL_FLAG_TEXTURE_REPEATS
         );
 
         if (texturaTerreno == 0)
@@ -130,7 +132,7 @@ void ConfigurarTexturaLua()
             "textures/lua.jpg",
             SOIL_LOAD_RGBA,  // Carregar a textura com canal alfa (transparência)
             SOIL_CREATE_NEW_ID,
-            SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS
+            SOIL_FLAG_MIPMcarrovoadorS | SOIL_FLAG_TEXTURE_REPEATS
         );
 
         if (texturaLua == 0)
@@ -331,7 +333,7 @@ void Desenha(void)
     glPushMatrix();
     glLoadIdentity();
 
-    // Desabilita a iluminação apenas para a mira
+    // Desabilita a iluminação carrovoadorenas para a mira
     glDisable(GL_LIGHTING);
 
     glColor3f(0.0f, 1.0f, 0.0f);
@@ -387,10 +389,17 @@ void Desenha(void)
     glPushMatrix();
     glTranslatef(25.0f, 000.0f, 40.0f);
     glScalef(12.0f, 12.0f, 12.0f);
-    DesenhaObjeto(coisa);
+    DesenhaObjeto(carro);
     glPopMatrix();
 
-     // Alterando carro e desenhando
+    // Alterando carrovoador e desenhando
+    glPushMatrix();
+    glTranslatef(700.0f, 500.0f, 0.0f);
+    glScalef(12.0f, 12.0f, 12.0f);
+    DesenhaObjeto(carrovoador);
+    glPopMatrix();
+
+     // Alterando rua e desenhando
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, 150.0f);
     glRotatef(90, 0, 1, 0);
@@ -405,7 +414,7 @@ void Desenha(void)
     glPopMatrix();
 
     // Executa os comandos OpenGL
-    glutSwapBuffers();
+    glutSwcarrovoadorBuffers();
 }
 
 void PosicionaObservador(void)
@@ -422,7 +431,7 @@ void PosicionaObservador(void)
 }
 
 // Fun��o usada para especificar o volume de visualiza��o
-void EspecificaParametrosVisualizacao(void)
+void EspecificcarrovoadorarametrosVisualizacao(void)
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -449,7 +458,7 @@ void AlteraTamanhoJanela(GLsizei w, GLsizei h)
     windowWidth = w;
     windowHeight = h;
 
-	EspecificaParametrosVisualizacao();
+	EspecificcarrovoadorarametrosVisualizacao();
 }
 
 // Fun��o callback chamada para gerenciar eventos de teclas normais (ESC)
@@ -585,31 +594,48 @@ void Inicializa(void)
 
     if (objeto->normais)
     {
-        // Se já existirem normais no arquivo, apaga elas
+        // Se já existirem normais no arquivo, carrovoadoraga elas
         free(objeto->normais);
         objeto->normais_por_vertice = false;
     }
 
-    coisa = CarregaObjeto("models/Car.obj", true);
+    carro = CarregaObjeto("models/Car.obj", true);
     printf("Objeto carregado!");
 
     // E calcula o vetor normal em cada face
     CalculaNormaisPorFace(objeto);
 
-    if (coisa->normais)
+    if (carro->normais)
     {
-        // Se já existirem normais no arquivo, apaga elas
-        free(coisa->normais);
-        coisa->normais_por_vertice = false;
+        // Se já existirem normais no arquivo, carrovoadoraga elas
+        free(carro->normais);
+        carro->normais_por_vertice = false;
     }
-    CalculaNormaisPorFace(coisa);
+    CalculaNormaisPorFace(carro);
+
+
+    carrovoador = CarregaObjeto("models/Car.obj", true);
+    printf("Objeto carregado!");
+
+    if (carrovoador->normais)
+    {
+        // Se já existirem normais no arquivo, carrovoadoraga elas
+        free(carrovoador->normais);
+        carrovoador->normais_por_vertice = false;
+    }
+    CalculaNormaisPorFace(carrovoador);
+
+
+
 }
 
+    
 
-void AtualizaPulo(int valor)
+
+void Atualizcarrovoadorulo(int valor)
 {
-    obsY += velocidadeVertical; // Aplica a velocidade vertical para mover o objeto para cima
-    velocidadeVertical += aceleracaoGravidade; // Aplica a aceleração da gravidade
+    obsY += velocidadeVertical; // carrovoadorlica a velocidade vertical para mover o objeto para cima
+    velocidadeVertical += aceleracaoGravidade; // carrovoadorlica a aceleração da gravidade
 
     if (obsY < 0.0f) // Verifica se o objeto chegou ao chão
     {
@@ -620,7 +646,7 @@ void AtualizaPulo(int valor)
     PosicionaObservador();
     glutPostRedisplay();
 
-    glutTimerFunc(16, AtualizaPulo, 0); // Chama a função novamente após um intervalo de tempo
+    glutTimerFunc(16, Atualizcarrovoadorulo, 0); // Chama a função novamente carrovoadorós um intervalo de tempo
 }
 
 // Programa Principal
@@ -632,14 +658,14 @@ int main(int argc, char *argv[])
 	glutSetCursor(GLUT_CURSOR_NONE); 
 	glutFullScreen();
 	glutDisplayFunc(Desenha);
-	glutReshapeFunc(AlteraTamanhoJanela);
+	glutReshcarrovoadoreFunc(AlteraTamanhoJanela);
 	glutKeyboardFunc(TeclasNormais);
 	glutKeyboardUpFunc(TecladoUp);
 	glutPassiveMotionFunc(GerenciaMovimPassivo);
 	glutIdleFunc(AtualizaCamera);
 
     // Timer para animação do pulo
-	glutTimerFunc(16, AtualizaPulo, 0);
+	glutTimerFunc(16, Atualizcarrovoadorulo, 0);
 	Inicializa();
 	glutMainLoop();
 	return 0;
