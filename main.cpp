@@ -38,6 +38,13 @@ bool keyW = false;
 bool keyA = false;
 bool keyS = false;
 bool keyD = false;
+bool shiftPressionado = false;
+
+float carrovoadorX = 850.0f;  // Posição inicial do carro voador no eixo X
+float carrovoadorY = 500.0f;  // Posição inicial do carro voador no eixo Y
+float raioMovimento = 80.0f; // Raio do círculo
+float velocidadeAngular = 0.03f; // Velocidade angular do movimento em radianos
+float rotacaoCarroVoador = 0.0f;
 
 // Fun��o respons�vel pela especifica��o dos par�metros de ilumina��o
 void DefineIluminacao (void)
@@ -405,7 +412,8 @@ void Desenha(void)
 
      // Alterando carrovoador e desenhando
     glPushMatrix();
-    glTranslatef(700.0f, 500.0f, 0.0f);
+    glTranslatef(carrovoadorX, carrovoadorY, 0.0f);
+    glRotatef(rotacaoCarroVoador, 0, 0, 1);
     glScalef(12.0f, 12.0f, 12.0f);
     DesenhaObjeto(carrovoador);
     glPopMatrix();
@@ -543,25 +551,28 @@ void TecladoUp(unsigned char key, int x, int y)
 
 void AtualizaCamera()
 {
-    if (keyW)
-    {
-        obsX += 0.5f * dirX;
-        obsZ += 0.5f * dirZ;
+    float velocidadeMovimento = 0.5f; // Velocidade de movimento padrão
+
+    if (shiftPressionado) {
+        // Se a tecla Shift estiver pressionada, aumente a velocidade de movimento
+        velocidadeMovimento *= 1.5f; // Multiplica a velocidade por um fator de 2 (dobro da velocidade)
     }
-    if (keyA)
-    {
-        obsX += 0.5f * dirZ;  // Trocar para adição
-        obsZ -= 0.5f * dirX;  // Trocar para subtração
+
+    if (keyW) {
+        obsX += velocidadeMovimento * dirX;
+        obsZ += velocidadeMovimento * dirZ;
     }
-    if (keyS)
-    {
-        obsX -= 0.5f * dirX;
-        obsZ -= 0.5f * dirZ;
+    if (keyA) {
+        obsX += velocidadeMovimento * dirZ;
+        obsZ -= velocidadeMovimento * dirX;
     }
-    if (keyD)
-    {
-        obsX -= 0.5f * dirZ;  // Trocar para subtração
-        obsZ += 0.5f * dirX;  // Trocar para adição
+    if (keyS) {
+        obsX -= velocidadeMovimento * dirX;
+        obsZ -= velocidadeMovimento * dirZ;
+    }
+    if (keyD) {
+        obsX -= velocidadeMovimento * dirZ;
+        obsZ += velocidadeMovimento * dirX;
     }
 
     glutPostRedisplay();
@@ -690,6 +701,46 @@ void AtualizaPulo(int valor)
     glutTimerFunc(16, AtualizaPulo, 0); // Chama a função novamente após um intervalo de tempo
 }
 
+// Função de atualização do carro voador
+void AtualizaCarroVoador(int valor)
+{
+    // Atualiza a posição do carro voador
+    float angulo = velocidadeAngular * valor; // Calcula o ângulo de acordo com o tempo
+    carrovoadorX = 700.0f + raioMovimento * cos(angulo); // Calcula a nova posição X no círculo
+    carrovoadorY = 500.0f + raioMovimento * sin(angulo); // Calcula a nova posição Y no círculo
+
+    // Atualiza a rotação do carro voador
+    rotacaoCarroVoador += 1.1f; // Incrementa o ângulo de rotação
+
+    PosicionaObservador(); // Atualiza a posição do observador (câmera)
+
+    glutPostRedisplay(); // Marca a janela para redesenhar o cenário
+
+    glutTimerFunc(16, AtualizaCarroVoador, valor + 1); // Chama a função novamente após um intervalo de tempo
+}
+
+void TeclasEspeciais(int key, int x, int y)
+{
+    switch (key) {
+        case GLUT_KEY_SHIFT_L:
+        case GLUT_KEY_SHIFT_R:
+            shiftPressionado = true;
+            break;
+        // Outros casos para teclas especiais
+    }
+}
+
+void TeclasEspeciaisUp(int key, int x, int y)
+{
+    switch (key) {
+        case GLUT_KEY_SHIFT_L:
+        case GLUT_KEY_SHIFT_R:
+            shiftPressionado = false;
+            break;
+        // Outros casos para teclas especiais
+    }
+}
+
 // Programa Principal
 int main(int argc, char *argv[])
 {
@@ -702,11 +753,14 @@ int main(int argc, char *argv[])
 	glutReshapeFunc(AlteraTamanhoJanela);
 	glutKeyboardFunc(TeclasNormais);
 	glutKeyboardUpFunc(TecladoUp);
+    glutSpecialFunc(TeclasEspeciais);
+    glutSpecialUpFunc(TeclasEspeciaisUp);
 	glutPassiveMotionFunc(GerenciaMovimPassivo);
 	glutIdleFunc(AtualizaCamera);
 
     // Timer para animação do pulo
 	glutTimerFunc(16, AtualizaPulo, 0);
+	glutTimerFunc(16, AtualizaCarroVoador, 0);
 	Inicializa();
 	glutMainLoop();
 	return 0;
